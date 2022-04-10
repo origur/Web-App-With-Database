@@ -1,0 +1,221 @@
+drop database covidDB;
+
+create database covidDB;
+
+use covidDB;
+
+create table Company(
+       name varchar(40) not null primary key,
+       street varchar(40),
+       city varchar(40),
+       province char(2),
+       postalCode char(6)
+);
+
+create table Vaccine(
+	lot char(6) not null primary key,
+	expiryDate date not null,
+	productionDate date not null,
+	doses integer,
+	producedBy varchar(40) not null,
+	foreign key (producedBy) references Company(name)
+);
+
+create table VaxClinic(
+       name varchar(40) not null primary key,
+       street varchar(40),
+       city varchar(40),
+       province char(2),
+       postalCode char(6)
+);
+
+Create table shipsTo(
+	lotNumber char(6) not null,
+	clinic char(40) not null,
+	primary key(lotNumber, clinic),
+	foreign key (lotNumber) references vaccine(lot) on delete cascade,
+	foreign key (clinic) references VaxClinic(name) on delete cascade
+);
+
+Create table Patient(
+	OHIP char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	dob date not null
+);
+
+Create table Spouse(
+	spouseOHIP char(20) not null,
+	OHIP char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	phone char(10),
+	foreign key (spouseOHIP) references Patient(OHIP) on delete cascade
+);
+
+Create table Nurse(
+	ID char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null
+);
+
+
+Create table practice(
+	name char(40) not null primary key,
+	phone char(10)
+);
+
+
+Create table doctor(
+       ID char(20) not null primary key,
+	firstName varchar(40) not null,
+	lastName varchar(40) not null,
+	practiceName char(40),
+	foreign key (practiceName) references practice(name) on delete set null
+);
+
+Create table nurseCredentials(
+	ID char(20) not null,
+	Cred char(4) not null,
+	Primary key(ID, Cred),
+	Foreign key (ID) references Nurse(ID)
+);
+
+Create table drCredentials(
+	ID char(20) not null,
+	Cred char(4) not null,
+	Primary key(ID, Cred),
+	Foreign key (ID) references Doctor(id) on delete cascade
+);
+
+Create table NurseWorksAt(
+	ID char(20) not null,
+	clinicName char(40) not null,
+	Primary key(clinicName, ID),
+	Foreign key (clinicName) references VaxClinic(name) on delete cascade,
+	Foreign key (ID) references Nurse(ID) on delete cascade
+);
+
+Create table DrWorksAt(
+	ID char(20) not null,
+	clinicName char(40) not null,
+	Primary key(clinicName, ID),
+	Foreign key (clinicName) references VaxClinic(name) on delete cascade,
+	Foreign key (ID) references Doctor(ID) on delete cascade
+);
+
+Create table Vaccination(
+	vaxClinic char(40) not null,
+	vaccineLot char(6) not null,
+	patientOHIP char(20) not null,
+	date datetime not null,
+	primary key(patientOHIP, vaxClinic, vaccineLot),
+	foreign key (patientOHIP) references Patient(OHIP) on delete restrict,
+	foreign key (vaxClinic) references vaxClinic(name) on delete restrict,
+	foreign key (vaccineLot) references vaccine(lot) on delete restrict
+);
+
+insert into Patient values
+('1234567890AB','Peter','Douglas','2000-01-01'),
+('6897202113TB','LeBron','James','1990-12-05'),
+('8989001876UQ','Joe','Burrow','1967-05-28'),
+('6374839264LC','Lil','Wayne','1982-04-16'),
+('4263920647WW','Megan','Rapinoe','2004-08-21')
+;
+
+insert into Spouse values
+('1234567890AB','8362904561BW','Lindsay','Douglas','4160009071'),
+('6897202113TB','1019181716SY','Savannah','James','2891716699'),
+('8989001876UQ','4152354670OI','Super','Bowl','6478890712'),
+('6374839264LC','9015472891NM','Big','Wayne','3056678877'),
+('4263920647WW','2345787777HG','Sue','Bird','4164254254')
+;
+
+insert into Company values
+('Pfizer','1100 Bathurst St','Toronto','ON','M7K9I8'),
+('Moderna','17 Dosage Ave','Calgary','AB','R3U7V7'),
+('AstraZeneca','678 Jab Rd','Vancouver','BC','V4U8O2'),
+('Johnson & Johnson','2233 Rue Vaccine','Montreal','QC','O9T6B3')
+;
+
+insert into Vaccine values
+('PP0011','2022-07-01','2022-01-01',235,'Pfizer'),
+('PP0012','2022-07-02','2022-01-02',1127,'Pfizer'),
+('QT3142','2022-03-14','2021-09-14',789,'Moderna'),
+('FC7149','2022-08-04','2022-02-04',10000,'AstraZeneca'),
+('JP2219','2022-04-19','2021-10-19',81,'Johnson & Johnson'),
+('JP9911','2022-06-25','2021-12-25',416,'Johnson & Johnson')
+;
+
+insert into VaxClinic values
+('St. Lawrence Clinic','1 Portsmouth St','Kingston','ON','K8P9G6'),
+('Hobo Jims Injection Site','22 High Park Rd','Toronto','ON','M4L0P0'),
+('Sunnybrook Hospital','1 Sunnybrook Cres','Toronto','ON','N6F5T3'),
+('Euphoria Clinic','55 Questionable Ln','Edmonton','AB','D7U8I9')
+;
+
+insert into shipsTo values
+('PP0011','Hobo Jims Injection Site'),
+('PP0012','Sunnybrook Hospital'),
+('QT3142','Sunnybrook Hospital'),
+('FC7149','St. Lawrence Clinic'),
+('JP2219','Euphoria Clinic'),
+('JP9911','Hobo Jims Injection Site')
+;
+
+insert into Vaccination values
+('Euphoria Clinic','JP2219','1234567890AB','2021-10-21 12:10:00'),
+('Sunnybrook Hospital','QT3142','6897202113TB','2021-09-16 09:49:00'),
+('Euphoria Clinic','JP2219','8989001876UQ','2021-11-30 15:07:00'),
+('Hobo Jims Injection Site','PP0011','6374839264LC','2022-02-01 10:34:00'),
+('St. Lawrence Clinic','FC7149','4263920647WW','2022-02-07 08:02:00')
+;
+
+insert into practice values
+('Gucci Practitioners','4169052890'),
+('Louis and Vuitton MDs','6471119900'),
+('Prada and Chanel Doctors','2890002345')
+;
+
+insert into Nurse values
+('3453453456','Carla','Espinosa'),
+('1289107788','Joan','dArc'),
+('5671278432','Damon','Albarn'),
+('3207456089','Heath','Ledger')
+;
+
+insert into NurseWorksAt values
+('3453453456','St. Lawrence Clinic'),
+('1289107788','Hobo Jims Injection Site'),
+('5671278432','Sunnybrook Hospital'),
+('3207456089','Euphoria Clinic')
+;
+
+insert into nurseCredentials values
+('3453453456','RN'),
+('1289107788','NP'),
+('5671278432','RN'),
+('3207456089','NP')
+;
+
+insert into Doctor values
+('9875313245','Martin','Shkrelli','Gucci Practitioners'),
+('1090908732','Anthony','Fauci','Louis and Vuitton MDs'),
+('7642029775','Andre','Young','Prada and Chanel Doctors')
+;
+
+insert into DrWorksAt values
+('9875313245','Hobo Jims Injection Site'),
+('1090908732','Euphoria Clinic'),
+('7642029775','Sunnybrook Hospital')
+;
+
+insert into drCredentials values
+('9875313245','DR'),
+('1090908732','DR'),
+('7642029775','DR')
+;
+	
+	
+
+
